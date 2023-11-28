@@ -19,11 +19,10 @@ class Racket {
     } else if (this.y > height - this.h) {
       this.y = height - this.h;
     }
-    
+
     // If it's the player's racket
     if (this.x < width / 2) {
       this.y += direction * this.speed;
-  
     } else {
       // If it's computer's racket and the ball is above racket, move racket up
       if (ball.y < this.y + this.h / 2) {
@@ -43,11 +42,12 @@ class Ball {
     this.y = 200;
     this.vx = Math.random() * 10 - 5;
     this.vy = Math.random() * 10 - 5;
+    this.radius = 25; // Assuming the diameter of the ball is 50
   }
 
   draw() {
     fill(255);
-    ellipse(this.x, this.y, 50, 50);
+    ellipse(this.x, this.y, this.radius * 2, this.radius * 2);
   }
 
   update() {
@@ -63,15 +63,15 @@ class Ball {
       this.vy *= -1;
     }
 
-    // Check if the ball is hitting the racket, considering the ball's radius
-    if (this.x >= player.x && this.x <= player.x + player.w &&
-      this.y >= player.y && this.y <= player.y + player.h) {
+    // Check if the ball is hitting the player's racket
+    if (this.x + this.radius >= player.x && this.x - this.radius <= player.x + player.w &&
+      this.y + this.radius >= player.y && this.y - this.radius <= player.y + player.h) {
       this.vx *= -1;
     }
 
-    // Check if the ball is hitting the computer's racket, considering the ball's radius
-    if (this.x >= computer.x && this.x <= computer.x + computer.w &&
-      this.y >= computer.y && this.y <= computer.y + computer.h) {
+    // Check if the ball is hitting the computer's racket
+    if (this.x + this.radius >= computer.x && this.x - this.radius <= computer.x + computer.w &&
+      this.y + this.radius >= computer.y && this.y - this.radius <= computer.y + computer.h) {
       this.vx *= -1;
     }
   }
