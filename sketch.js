@@ -1,6 +1,7 @@
 let ballImage;
-let playerRacket;
-let computerRacket;
+let playerRacketImage;
+let computerRacketImage;
+let backgroundImage;
 
 class Racket {
   constructor(x, y, w, h, speed) {
@@ -15,11 +16,11 @@ class Racket {
     // draw the racket if player or computer
     if (this.x < width / 2) {
       imageMode(CENTER); // Set the image mode to CENTER
-      image(playerRacket, this.x, this.y, this.w, this.h);
+      image(playerRacketImage, this.x, this.y, this.w, this.h);
     }
     else {
       imageMode(CENTER); // Set the image mode to CENTER
-      image(computerRacket, this.x, this.y, this.w, this.h);
+      image(computerRacketImage, this.x, this.y, this.w, this.h);
     }
   }
 
@@ -87,8 +88,10 @@ class Ball {
   }
 
   isHittingRacket(racket) {
-    return this.x + this.radius >= racket.x && this.x - this.radius <= racket.x + racket.w &&
-      this.y + this.radius >= racket.y && this.y - this.radius <= racket.y + racket.h;
+    return this.x + this.radius >= racket.x - racket.w / 2 && 
+           this.x - this.radius <= racket.x + racket.w / 2 &&
+           this.y + this.radius >= racket.y - racket.h / 2 && 
+           this.y - this.radius <= racket.y + racket.h / 2;
   }
 }
 
@@ -98,19 +101,29 @@ var computer;
 
 function preload() {
   ballImage = loadImage('assets/ball.png');
-playerRacket = loadImage('assets/player_racket.png');
-computerRacket = loadImage('assets/computer_racket.png');
+  playerRacketImage = loadImage('assets/player_racket.png');
+  computerRacketImage = loadImage('assets/computer_racket.png');
+  backgroundImage = loadImage('assets/background.png');
 }
 
 function setup() {
   createCanvas(800, 400);
   ball = new Ball();
-  player = new Racket(20, 20, 20, 100, 5);
+  player = new Racket(30, 20, 20, 100, 5);
   computer = new Racket(760, 20, 20, 100, 3);
 }
 
 function draw() {
-  background(0);
+  // centralised background image, with canvas aspect ratio, and zoom out as maximum as possible
+  let imgWidth = width;
+  let imgHeight = width * backgroundImage.height / backgroundImage.width;
+  if (imgHeight < height) {
+    imgHeight = height;
+    imgWidth = height * backgroundImage.width / backgroundImage.height;
+  }
+  image(backgroundImage, width / 2, height / 2, imgWidth, imgHeight);
+
+
   player.draw();
   player.move(keyIsDown(83) - keyIsDown(87));
   computer.draw();
