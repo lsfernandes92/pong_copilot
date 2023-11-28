@@ -55,35 +55,45 @@ class Ball {
     this.vx = Math.random() * 10 - 5;
     this.vy = Math.random() * 10 - 5;
     this.radius = 25; // Assuming the diameter of the ball is 50
+    this.angle = 0; // Add rotation angle
   }
 
   draw() {
     // draw the ball
     imageMode(CENTER); // Set the image mode to CENTER
-    image(ballImage, this.x, this.y, this.radius * 2, this.radius * 2);
+    push(); // Save the current transformation matrix
+    translate(this.x, this.y); // Move to the ball's position
+    rotate(this.angle); // Rotate by the ball's angle
+    image(ballImage, 0, 0, this.radius * 2, this.radius * 2);
+    pop(); // Restore the transformation matrix
   }
 
   update() {
     this.x += this.vx;
     this.y += this.vy;
-
+    // Rotates according to the velocity of x and y
+    this.angle += (this.vx + this.vy) / 25;
+  
     if (this.x > width || this.x < 0) {
       this.x = width / 2;
       this.y = height / 2;
     }
-
+  
     if (this.y > height || this.y < 0) {
       this.vy *= -1;
+      this.angle += PI; // Rotate 180 degrees
     }
-
+  
     // Check if the ball is hitting the player's racket
     if (this.isHittingRacket(player)) {
       this.vx *= -1;
+      this.angle += PI; // Rotate 180 degrees
     }
-
+  
     // Check if the ball is hitting the computer's racket
     if (this.isHittingRacket(computer)) {
       this.vx *= -1;
+      this.angle += PI; // Rotate 180 degrees
     }
   }
 
