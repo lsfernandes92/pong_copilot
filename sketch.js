@@ -64,16 +64,19 @@ class Ball {
     }
 
     // Check if the ball is hitting the player's racket
-    if (this.x + this.radius >= player.x && this.x - this.radius <= player.x + player.w &&
-      this.y + this.radius >= player.y && this.y - this.radius <= player.y + player.h) {
+    if (this.isHittingRacket(player)) {
       this.vx *= -1;
     }
 
     // Check if the ball is hitting the computer's racket
-    if (this.x + this.radius >= computer.x && this.x - this.radius <= computer.x + computer.w &&
-      this.y + this.radius >= computer.y && this.y - this.radius <= computer.y + computer.h) {
+    if (this.isHittingRacket(computer)) {
       this.vx *= -1;
     }
+  }
+
+  isHittingRacket(racket) {
+    return this.x + this.radius >= racket.x && this.x - this.radius <= racket.x + racket.w &&
+      this.y + this.radius >= racket.y && this.y - this.radius <= racket.y + racket.h;
   }
 }
 
