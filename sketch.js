@@ -13,13 +13,26 @@ class Racket {
   }
 
   move(direction) {
-    this.y += direction * this.speed;
-
     // Keep the racket within the canvas
     if (this.y < 0) {
       this.y = 0;
     } else if (this.y > height - this.h) {
       this.y = height - this.h;
+    }
+    
+    // If it's the player's racket
+    if (this.x < width / 2) {
+      this.y += direction * this.speed;
+  
+    } else {
+      // If it's computer's racket and the ball is above racket, move racket up
+      if (ball.y < this.y + this.h / 2) {
+        this.y -= this.speed;
+      }
+      // If it's computer's racket and the ball is below racket, move racket down
+      else if (ball.y > this.y + this.h / 2) {
+        this.y += this.speed;
+      }
     }
   }
 }
@@ -50,27 +63,38 @@ class Ball {
       this.vy *= -1;
     }
 
-    // check if the ball is hitting the racket, considering the ball's radius
-    if (this.x >= player1.x && this.x <= player1.x + player1.w &&
-      this.y >= player1.y && this.y <= player1.y + player1.h) {
+    // Check if the ball is hitting the racket, considering the ball's radius
+    if (this.x >= player.x && this.x <= player.x + player.w &&
+      this.y >= player.y && this.y <= player.y + player.h) {
+      this.vx *= -1;
+    }
+
+    // Check if the ball is hitting the computer's racket, considering the ball's radius
+    if (this.x >= computer.x && this.x <= computer.x + computer.w &&
+      this.y >= computer.y && this.y <= computer.y + computer.h) {
       this.vx *= -1;
     }
   }
 }
 
 var ball;
-var player1;
+var player;
+var computer;
 
 function setup() {
   createCanvas(800, 400);
   ball = new Ball();
-  player1 = new Racket(20, 20, 20, 100, 5);
+  player = new Racket(20, 20, 20, 100, 5);
+  computer = new Racket(760, 20, 20, 100, 3);
 }
 
 function draw() {
   background(0);
-  player1.draw();
-  player1.move(keyIsDown(83) - keyIsDown(87));
+  player.draw();
+  player.move(keyIsDown(83) - keyIsDown(87));
+  computer.draw();
+  // Computer racket should move by itself
+  computer.move();
   ball.update();
   ball.draw();
 }
