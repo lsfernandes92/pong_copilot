@@ -1,3 +1,7 @@
+let ballImage;
+let playerRacket;
+let computerRacket;
+
 class Racket {
   constructor(x, y, w, h, speed) {
     this.x = x;
@@ -8,30 +12,37 @@ class Racket {
   }
 
   draw() {
-    fill(255);
-    rect(this.x, this.y, this.w, this.h);
+    // draw the racket if player or computer
+    if (this.x < width / 2) {
+      imageMode(CENTER); // Set the image mode to CENTER
+      image(playerRacket, this.x, this.y, this.w, this.h);
+    }
+    else {
+      imageMode(CENTER); // Set the image mode to CENTER
+      image(computerRacket, this.x, this.y, this.w, this.h);
+    }
   }
 
   move(direction) {
-    // Keep the racket within the canvas
-    if (this.y < 0) {
-      this.y = 0;
-    } else if (this.y > height - this.h) {
-      this.y = height - this.h;
-    }
-
     // If it's the player's racket
     if (this.x < width / 2) {
       this.y += direction * this.speed;
     } else {
       // If it's computer's racket and the ball is above racket, move racket up
-      if (ball.y < this.y + this.h / 2) {
+      if (ball.y < this.y) {
         this.y -= this.speed;
       }
       // If it's computer's racket and the ball is below racket, move racket down
-      else if (ball.y > this.y + this.h / 2) {
+      else if (ball.y > this.y) {
         this.y += this.speed;
       }
+    }
+
+    // Keep the racket within the canvas
+    if (this.y - this.h / 2 < 0) {
+      this.y = this.h / 2;
+    } else if (this.y + this.h / 2 > height) {
+      this.y = height - this.h / 2;
     }
   }
 }
@@ -46,8 +57,9 @@ class Ball {
   }
 
   draw() {
-    fill(255);
-    ellipse(this.x, this.y, this.radius * 2, this.radius * 2);
+    // draw the ball
+    imageMode(CENTER); // Set the image mode to CENTER
+    image(ballImage, this.x, this.y, this.radius * 2, this.radius * 2);
   }
 
   update() {
@@ -83,6 +95,12 @@ class Ball {
 var ball;
 var player;
 var computer;
+
+function preload() {
+  ballImage = loadImage('assets/ball.png');
+playerRacket = loadImage('assets/player_racket.png');
+computerRacket = loadImage('assets/computer_racket.png');
+}
 
 function setup() {
   createCanvas(800, 400);
