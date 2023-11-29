@@ -11,15 +11,49 @@ class Game {
     this.player = new Racket(20, 20, 20, 100, 5);
     this.computer = new Racket(760, 20, 20, 100, 3);
     this.ball = new Ball();
+    this.scoreKeeper = new ScoreKeeper();
   }
 
   preload() {
-    this.ballImage = loadImage('assets/ball.png');
-    this.playerRacketImage = loadImage('assets/player_racket.png');
-    this.computerRacketImage = loadImage('assets/computer_racket.png');
-    this.backgroundImage = loadImage('assets/background.png');
-    this.bounceSound = loadSound('assets/bounce.wav');
-    this.scoreSound = loadSound('assets/score.wav');
+    this.ballImage = loadImage("assets/ball.png");
+    this.playerRacketImage = loadImage("assets/player_racket.png");
+    this.computerRacketImage = loadImage("assets/computer_racket.png");
+    this.backgroundImage = loadImage("assets/background.png");
+    this.bounceSound = loadSound("assets/bounce.wav");
+    this.scoreSound = loadSound("assets/score.wav");
+  }
+
+  draw() {
+    this.renderBackground();
+    this.renderSprites();
+    this.displayScore();
+  }
+
+  renderBackground() {
+    let imgWidth = width;
+    let imgHeight =
+      (width * game.backgroundImage.height) / game.backgroundImage.width;
+    if (imgHeight < height) {
+      imgHeight = height;
+      imgWidth = (height * backgroundImage.width) / backgroundImage.height;
+    }
+    image(game.backgroundImage, width / 2, height / 2, imgWidth, imgHeight);
+  }
+
+  renderSprites() {
+    this.player.draw();
+    this.player.move(keyIsDown(83) - keyIsDown(87));
+    this.computer.draw();
+    this.computer.move();
+    this.ball.update();
+    this.ball.draw();
+  }
+
+  displayScore() {
+    textSize(32);
+    fill(255);
+    text(this.scoreKeeper.playerScore, width / 4, 50);
+    text(this.scoreKeeper.computerScore, (3 * width) / 4, 50);
   }
 }
 
@@ -33,33 +67,36 @@ class Racket {
   }
 
   draw() {
-    // draw the racket if player or computer
-    if (this.x < width / 2) {
-      imageMode(CENTER); // Set the image mode to CENTER
-      image(game.playerRacketImage, this.x, this.y, this.w, this.h);
-    }
-    else {
-      imageMode(CENTER); // Set the image mode to CENTER
-      image(game.computerRacketImage, this.x, this.y, this.w, this.h);
-    }
+    let racketImage =
+      map(this.x, 0, width, 0, 1) < 0.5
+        ? game.playerRacketImage
+        : game.computerRacketImage;
+    imageMode(CENTER); // Set the image mode to CENTER
+    image(racketImage, this.x, this.y, this.w, this.h);
   }
 
   move(direction) {
-    // If it's the player's racket
     if (this.x < width / 2) {
-      this.y += direction * this.speed;
+      this.movePlayerRacket(direction);
     } else {
-      // If it's computer's racket and the ball is above racket, move racket up
-      if (game.ball.y < this.y) {
-        this.y -= this.speed;
-      }
-      // If it's computer's racket and the ball is below racket, move racket down
-      else if (game.ball.y > this.y) {
-        this.y += this.speed;
-      }
+      this.moveComputerRacket();
     }
+    this.keepRacketWithinCanvas();
+  }
 
-    // Keep the racket within the canvas
+  movePlayerRacket(direction) {
+    this.y += direction * this.speed;
+  }
+
+  moveComputerRacket() {
+    if (game.ball.y < this.y) {
+      this.y -= this.speed;
+    } else if (game.ball.y > this.y) {
+      this.y += this.speed;
+    }
+  }
+
+  keepRacketWithinCanvas() {
     if (this.y - this.h / 2 < 0) {
       this.y = this.h / 2;
     } else if (this.y + this.h / 2 > height) {
@@ -89,32 +126,48 @@ class Ball {
   }
 
   update() {
+    this.move();
+    this.checkForScore();
+    this.checkForBounce();
+    this.checkForRacketCollision();
+  }
+
+  move() {
     this.x += this.vx;
     this.y += this.vy;
-    // Rotates according to the velocity of x and y
-    this.angle += (this.vx + this.vy) / 25;
-  
+    this.angle += (this.vx + this.vy) / 25; // Rotates according to the velocity of x and y
+  }
+
+  checkForScore() {
     if (this.x > width || this.x < 0) {
-      this.x = width / 2;
-      this.y = height / 2;
+      this.resetPosition();
       game.scoreSound.play();
-      sayScore();
+      if (this.x < width / 2) {
+        game.scoreKeeper.incrementComputerScore();
+      } else {
+        game.scoreKeeper.incrementPlayerScore();
+      }
+      game.scoreKeeper.sayScore();
     }
-  
+  }
+
+  resetPosition() {
+    this.x = width / 2;
+    this.y = height / 2;
+  }
+
+  checkForBounce() {
     if (this.y > height || this.y < 0) {
       this.vy *= -1;
       this.angle += PI; // Rotate 180 degrees
     }
-  
-    // Check if the ball is hitting the player's racket
-    if (this.isHittingRacket(game.player)) {
-      this.vx *= -1;
-      this.angle += PI; // Rotate 180 degrees
-      game.bounceSound.play();
-    }
-  
-    // Check if the ball is hitting the computer's racket
-    if (this.isHittingRacket(game.computer)) {
+  }
+
+  checkForRacketCollision() {
+    if (
+      this.isHittingRacket(game.player) ||
+      this.isHittingRacket(game.computer)
+    ) {
       this.vx *= -1;
       this.angle += PI; // Rotate 180 degrees
       game.bounceSound.play();
@@ -122,10 +175,33 @@ class Ball {
   }
 
   isHittingRacket(racket) {
-    return this.x + this.radius >= racket.x - racket.w / 2 && 
-           this.x - this.radius <= racket.x + racket.w / 2 &&
-           this.y + this.radius >= racket.y - racket.h / 2 && 
-           this.y - this.radius <= racket.y + racket.h / 2;
+    return (
+      this.x + this.radius >= racket.x - racket.w / 2 &&
+      this.x - this.radius <= racket.x + racket.w / 2 &&
+      this.y + this.radius >= racket.y - racket.h / 2 &&
+      this.y - this.radius <= racket.y + racket.h / 2
+    );
+  }
+}
+
+class ScoreKeeper {
+  constructor() {
+    this.playerScore = 0;
+    this.computerScore = 0;
+  }
+
+  incrementPlayerScore() {
+    this.playerScore++;
+  }
+
+  incrementComputerScore() {
+    this.computerScore++;
+  }
+
+  sayScore() {
+    let msg = new SpeechSynthesisUtterance();
+    msg.text = "The score is: " + this.playerScore + " to " + this.computerScore;
+    window.speechSynthesis.speak(msg);
   }
 }
 
@@ -141,39 +217,5 @@ function setup() {
 }
 
 function draw() {
-  // centralised background image, with canvas aspect ratio, and zoom out as maximum as possible
-  let imgWidth = width;
-  let imgHeight = width * game.backgroundImage.height / game.backgroundImage.width;
-  if (imgHeight < height) {
-    imgHeight = height;
-    imgWidth = height * backgroundImage.width / backgroundImage.height;
-  }
-  image(game.backgroundImage, width / 2, height / 2, imgWidth, imgHeight);
-
-  game.player.draw();
-  game.player.move(keyIsDown(83) - keyIsDown(87));
-  game.computer.draw();
-  game.computer.move();
-  game.ball.update();
-  game.ball.draw();
-
-  textSize(32);
-  fill(255);
-  text(game.playerScore, width / 4, 50);
-  text(game.computerScore, 3 * width / 4, 50);
-}
-
-function sayScore() {
-  // If the ball is on the left side of the canvas, the computer scores
-  if (this.x < width / 2) {
-    game.computerScore++;
-  }
-  // If the ball is on the right side of the canvas, the player scores
-  else {
-    game.playerScore++;
-  }
-  // use speech synthesis to say the score
-  let msg = new SpeechSynthesisUtterance();
-  msg.text = "The score is: " + game.playerScore + " to " + game.computerScore;
-  window.speechSynthesis.speak(msg);
+  game.draw();
 }
