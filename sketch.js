@@ -4,6 +4,8 @@ let computerRacketImage;
 let backgroundImage;
 let bounceSound;
 let scoreSound;
+let playerScore = 0;
+let computerScore = 0;
 
 class Racket {
   constructor(x, y, w, h, speed) {
@@ -80,6 +82,7 @@ class Ball {
       this.x = width / 2;
       this.y = height / 2;
       scoreSound.play();
+      sayScore();
     }
   
     if (this.y > height || this.y < 0) {
@@ -148,4 +151,24 @@ function draw() {
   computer.move();
   ball.update();
   ball.draw();
+
+  textSize(32);
+  fill(255);
+  text(playerScore, width / 4, 50);
+  text(computerScore, 3 * width / 4, 50);
+}
+
+function sayScore() {
+  // If the ball is on the left side of the canvas, the computer scores
+  if (this.x < width / 2) {
+    computerScore++;
+  }
+  // If the ball is on the right side of the canvas, the player scores
+  else {
+    playerScore++;
+  }
+  // use speech synthesis to say the score
+  let msg = new SpeechSynthesisUtterance();
+  msg.text = "The score is: " + playerScore + " to " + computerScore;
+  window.speechSynthesis.speak(msg);
 }
