@@ -2,6 +2,8 @@ let ballImage;
 let playerRacketImage;
 let computerRacketImage;
 let backgroundImage;
+let bounceSound;
+let scoreSound;
 
 class Racket {
   constructor(x, y, w, h, speed) {
@@ -77,6 +79,7 @@ class Ball {
     if (this.x > width || this.x < 0) {
       this.x = width / 2;
       this.y = height / 2;
+      scoreSound.play();
     }
   
     if (this.y > height || this.y < 0) {
@@ -88,12 +91,14 @@ class Ball {
     if (this.isHittingRacket(player)) {
       this.vx *= -1;
       this.angle += PI; // Rotate 180 degrees
+      bounceSound.play();
     }
   
     // Check if the ball is hitting the computer's racket
     if (this.isHittingRacket(computer)) {
       this.vx *= -1;
       this.angle += PI; // Rotate 180 degrees
+      bounceSound.play();
     }
   }
 
@@ -114,6 +119,8 @@ function preload() {
   playerRacketImage = loadImage('assets/player_racket.png');
   computerRacketImage = loadImage('assets/computer_racket.png');
   backgroundImage = loadImage('assets/background.png');
+  bounceSound = loadSound('assets/bounce.wav');
+  scoreSound = loadSound('assets/score.wav');
 }
 
 function setup() {
